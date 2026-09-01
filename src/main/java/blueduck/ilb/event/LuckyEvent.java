@@ -15,6 +15,12 @@ public class LuckyEvent {
     public final String category;
     public final String id;
 
+    // Set once by EventList.addEvent() from the weight passed at registration. Used as the
+    // fallback weight for categories that don't have a per-event config override (see
+    // EventList.effectiveWeight()); for "default" category events, Config's per-event weight
+    // takes precedence instead.
+    public int defaultWeight;
+
     public ArrayList<EventAction> actionList = new ArrayList<EventAction>();
 
     public LuckyEvent(String category, String id, EventAction... actions) {
