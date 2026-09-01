@@ -15,8 +15,8 @@ public class EventList {
     public static LuckyEvent getEvent(Level level) {
         // Category and individual-event toggles are read from Config here rather than at
         // registration time, because EventAdditions.addEvents() runs during mod construction,
-        // before Forge has loaded the config file. Filtering at selection time guarantees the
-        // current config values are honored regardless of that ordering.
+        // before Forge has loaded the config file. Filtering/weighting at selection time
+        // guarantees the current config values are honored regardless of that ordering.
         List<LuckyEvent> pool = eventList.stream()
                 .filter(EventList::isEnabled)
                 .collect(Collectors.toList());
@@ -27,20 +27,46 @@ public class EventList {
             pool = eventList;
         }
 
-        return pool.get(level.getRandom().nextInt(pool.size()));
+        int totalWeight = pool.stream().mapToInt(EventList::effectiveWeight).sum();
+        if (totalWeight <= 0) {
+            // Every remaining event was weighted to 0 (e.g. by config) - fall back to a plain
+            // uniform pick rather than dividing by zero or silently returning nothing.
+            return pool.get(level.getRandom().nextInt(pool.size()));
+        }
+
+        int roll = level.getRandom().nextInt(totalWeight);
+        int cumulative = 0;
+        for (LuckyEvent event : pool) {
+            cumulative += effectiveWeight(event);
+            if (roll < cumulative) {
+                return event;
+            }
+        }
+        return pool.get(pool.size() - 1);
     }
 
     private static boolean isEnabled(LuckyEvent event) {
-        if (Config.disabledEvents != null && Config.disabledEvents.contains(event.id)) {
+        if (!Config.isCategoryEnabled(event.category)) {
             return false;
         }
-        return Config.isCategoryEnabled(event.category);
+        if (event.category.equals("default")) {
+            return Config.isDefaultEventEnabled(event.id);
+        }
+        return Config.disabledEvents == null || !Config.disabledEvents.contains(event.id);
+    }
+
+    private static int effectiveWeight(LuckyEvent event) {
+        int weight = event.category.equals("default")
+                ? Config.getDefaultEventWeight(event.id)
+                : event.defaultWeight;
+        return Math.max(weight, 0);
     }
 
     public static void addEvent(LuckyEvent event, int weight) {
-        for (int i = 0; i < weight; i++) {
-            eventList.add(event);
-        }
+        // Each event is stored once; weight is applied at selection time (see getEvent()) so
+        // that config-driven weight overrides can take effect without re-registering events.
+        event.defaultWeight = weight;
+        eventList.add(event);
     }
 
 }

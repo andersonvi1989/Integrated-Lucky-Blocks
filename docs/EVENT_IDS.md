@@ -1,6 +1,9 @@
 # Lucky Event IDs
 
-Every outcome the mod can roll has a stable `id` and belongs to a `category`. Use the `id` values below in `safety.disabledEvents` (in the mod's config file) to turn off individual outcomes, or use the matching `events.enableXEvents` toggle to turn off an entire category at once.
+Every outcome the mod can roll has a stable `id` and belongs to a `category`.
+
+- **`default` category** (built-in vanilla Minecraft events): no lookup needed - the config file has a fully enumerated `defaultEvents` section with one `enabled`/`weight` block per event, self-documented with comments. This table is still handy as a quick reference, but you can just open the config and search it directly.
+- **The 15 mod-compat categories** (alexcaves, create, etc.): use the `id` values below in `safety.disabledEvents` to turn off individual outcomes, or the matching `events.enableXEvents` toggle to turn off an entire category at once.
 
 This file is generated from `EventAdditions.java` - regenerate it with `scripts/gen_event_ids_doc.py` whenever events are added, removed, or reordered.
 
