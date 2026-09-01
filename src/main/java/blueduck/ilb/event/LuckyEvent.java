@@ -10,9 +10,16 @@ import java.util.Arrays;
 
 public class LuckyEvent {
 
+    // category matches one of the Config.enableXEvents toggles (e.g. "default", "alexcaves");
+    // id is the unique identifier used by Config's per-event disable list ("safety.disabledEvents")
+    public final String category;
+    public final String id;
+
     public ArrayList<EventAction> actionList = new ArrayList<EventAction>();
 
-    public LuckyEvent(EventAction... actions) {
+    public LuckyEvent(String category, String id, EventAction... actions) {
+        this.category = category;
+        this.id = id;
         actionList.addAll(Arrays.asList(actions));
     }
 
